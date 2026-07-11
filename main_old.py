@@ -4,45 +4,10 @@ from numba import cuda
 from frontier import load_cupy_items
 from Stopwatch import Stopwatch
 import warnings
-from Item import Item
 
-
-NUM_ITEMS = 16
-MAX_SWITCHES_PER_ITEM = 10
-
-always_masks = np.zeros(NUM_ITEMS, dtype=np.uint64)
-switch_counts = np.zeros(NUM_ITEMS, dtype=np.int32)
-switch_keys = np.zeros((NUM_ITEMS, MAX_SWITCHES_PER_ITEM), dtype=np.uint64)
-switch_values = np.zeros((NUM_ITEMS, MAX_SWITCHES_PER_ITEM), dtype=np.uint64)
-
-def modify_4_arrays(items_data):
-    global always_masks, switch_counts, switch_keys, switch_values
-
-    # Populate these arrays using your `items_gem.json` data and `effect_to_bitmask` dict
-    for i, item in enumerate(items_data):
-        always_masks[i] = item.always_add_effect.bitmask
-        
-        switch_counts[i] = len(item.switch_effects)
-        
-        for j, (key, values) in enumerate(item.switch_effects.items()):
-            switch_keys[i, j] = key.bitmask
-            
-            # Combine multiple values into a single bitmask
-            val_mask = 0
-            for val in values:
-                val_mask |= val.bitmask
-            switch_values[i, j] = val_mask
-
-    # Move item lookup structures to the GPU device
-    # d_always_masks = cuda.to_device(always_masks)
-    # d_switch_counts = cuda.to_device(switch_counts)
-    # d_switch_keys = cuda.to_device(switch_keys)
-    # d_switch_values = cuda.to_device(switch_values)
-
-    # return d_always_masks, d_switch_counts, d_switch_keys, d_switch_values
 
 @cuda.jit
-def apply_items_kernel(frontier, output):
+def apply_items_kernel(frontier, always_masks, switch_counts, switch_keys, switch_values, output):
     # Get global position of the thread
     state_idx, item_idx = cuda.grid(2)
     
@@ -72,17 +37,15 @@ def apply_items_kernel(frontier, output):
 
 def bfs():
     # initial_state = 0x0000000000000000
-    global always_masks, switch_counts, switch_keys, switch_values
-
     stopwatch = Stopwatch()
     initial_state = 0
     frontier = cp.array([initial_state], dtype=cp.uint64)
     visited = cp.array([initial_state], dtype=cp.uint64)
 
-    # d_always_masks, \
-    #     d_switch_counts, \
-    #     d_switch_keys, \
-    #     d_switch_values = load_cupy_items()
+    d_always_masks, \
+        d_switch_counts, \
+        d_switch_keys, \
+        d_switch_values = load_cupy_items()
 
     print(f"Starting real GPU BFS... Seed state: {hex(initial_state)}")
     print("-" * 50)
@@ -90,7 +53,7 @@ def bfs():
     generation = 1
     while frontier.size > 0:
         # Allocate a raw pool for the next generation expansions
-        raw_next_pool = cp.zeros(frontier.size * always_masks.size, dtype=cp.uint64)
+        raw_next_pool = cp.zeros(frontier.size * d_always_masks.size, dtype=cp.uint64)
 
         # Configure grid blocks based on the size of the frontier
         threads_per_block = (16, 16)
@@ -100,6 +63,10 @@ def bfs():
         # Launch kernel
         apply_items_kernel[grid_dims, threads_per_block](
             frontier, 
+            d_always_masks, 
+            d_switch_counts, 
+            d_switch_keys, 
+            d_switch_values, 
             raw_next_pool
         )
 
@@ -160,8 +127,5 @@ def main():
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
-
-    items = Item.from_json_file()
-    modify_4_arrays(items)
     
     bfs()
