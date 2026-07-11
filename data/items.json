@@ -1,0 +1,427 @@
+[
+    {
+        "Name": "Cuke",
+        "Cost": 2,
+        "AlwaysAddEffect": "Energizing",
+        "SwitchEffects": {
+            "Sneaky": [
+                "Paranoia"
+            ],
+            "Toxic": [
+                "Euphoric",
+                "Laxative"
+            ],
+            "Slippery": [
+                "Munchies"
+            ],
+            "Foggy": [
+                "Cyclopean"
+            ],
+            "Euphoric": [
+                "Laxative"
+            ],
+            "Munchies": [
+                "Athletic"
+            ]
+        }
+    },
+    {
+        "Name": "Banana",
+        "Cost": 2,
+        "AlwaysAddEffect": "Gingeritis",
+        "SwitchEffects": {
+            "Energizing": [
+                "Thought-provoking"
+            ],
+            "Toxic": [
+                "Smelly"
+            ],
+            "Long-faced": [
+                "Refreshing"
+            ],
+            "Calming": [
+                "Sneaky"
+            ],
+            "Paranoia": [
+                "Jennerising"
+            ],
+            "Cyclopean": [
+                "Energizing"
+            ],
+            "Smelly": [
+                "Anti-gravity"
+            ],
+            "Disorienting": [
+                "Focused"
+            ],
+            "Focused": [
+                "Seizure-inducing"
+            ]
+        }
+    },
+    {
+        "Name": "Paracetamol",
+        "Cost": 3,
+        "AlwaysAddEffect": "Sneaky",
+        "SwitchEffects": {
+            "Energizing": [
+                "Paranoia"
+            ],
+            "Toxic": [
+                "Tropic-thunder"
+            ],
+            "Foggy": [
+                "Calming"
+            ],
+            "Spicy": [
+                "Bright-eyed"
+            ],
+            "Calming": [
+                "Slippery"
+            ],
+            "Glowing": [
+                "Toxic"
+            ],
+            "Paranoia": [
+                "Balding"
+            ],
+            "Munchies": [
+                "Anti-gravity"
+            ],
+            "Electrifying": [
+                "Athletic"
+            ],
+            "Focused": [
+                "Gingeritis"
+            ]
+        }
+    },
+    {
+        "Name": "Donut",
+        "Cost": 3,
+        "AlwaysAddEffect": "Calorie-dense",
+        "SwitchEffects": {
+            "Calorie-dense": [
+                "Explosive"
+            ],
+            "Balding": [
+                "Sneaky"
+            ],
+            "Jennerising": [
+                "Gingeritis"
+            ],
+            "Anti-gravity": [
+                "Slippery"
+            ],
+            "Munchies": [
+                "Calming"
+            ],
+            "Focused": [
+                "Euphoric"
+            ],
+            "Shrinking": [
+                "Energizing"
+            ]
+        }
+    },
+    {
+        "Name": "Viagra",
+        "Cost": 4,
+        "AlwaysAddEffect": "Tropic-thunder",
+        "SwitchEffects": {
+            "Athletic": [
+                "Sneaky"
+            ],
+            "Euphoric": [
+                "Bright-eyed"
+            ],
+            "Laxative": [
+                "Calming"
+            ],
+            "Disorienting": [
+                "Toxic"
+            ]
+        }
+    },
+    {
+        "Name": "Mouthwash",
+        "Cost": 4,
+        "AlwaysAddEffect": "Balding",
+        "SwitchEffects": {
+            "Calorie-dense": [
+                "Sneaky"
+            ],
+            "Calming": [
+                "Anti-gravity"
+            ],
+            "Explosive": [
+                "Sedating"
+            ],
+            "Focused": [
+                "Jennerising"
+            ]
+        }
+    },
+    {
+        "Name": "Flu-meds",
+        "Cost": 5,
+        "AlwaysAddEffect": "Sedating",
+        "SwitchEffects": {
+            "Athletic": [
+                "Munchies"
+            ],
+            "Thought-provoking": [
+                "Gingeritis"
+            ],
+            "Calming": [
+                "Bright-eyed"
+            ],
+            "Euphoric": [
+                "Toxic"
+            ],
+            "Munchies": [
+                "Slippery"
+            ],
+            "Laxative": [
+                "Euphoric"
+            ],
+            "Electrifying": [
+                "Refreshing"
+            ],
+            "Shrinking": [
+                "Paranoia"
+            ]
+        }
+    },
+    {
+        "Name": "Gasoline",
+        "Cost": 5,
+        "AlwaysAddEffect": "Toxic",
+        "SwitchEffects": {
+            "Energizing": [
+                "Euphoric"
+            ],
+            "Gingeritis": [
+                "Smelly"
+            ],
+            "Sneaky": [
+                "Tropic-thunder"
+            ],
+            "Jennerising": [
+                "Sneaky"
+            ],
+            "Paranoia": [
+                "Calming"
+            ],
+            "Laxative": [
+                "Foggy"
+            ],
+            "Electrifying": [
+                "Disorienting"
+            ],
+            "Disorienting": [
+                "Glowing"
+            ],
+            "Shrinking": [
+                "Focused"
+            ]
+        }
+    },
+    {
+        "Name": "Energy drink",
+        "Cost": 6,
+        "AlwaysAddEffect": "Athletic",
+        "SwitchEffects": {
+            "Tropic-thunder": [
+                "Sneaky"
+            ],
+            "Sedating": [
+                "Munchies"
+            ],
+            "Foggy": [
+                "Laxative"
+            ],
+            "Spicy": [
+                "Euphoric"
+            ],
+            "Glowing": [
+                "Disorienting"
+            ],
+            "Schizophrenic": [
+                "Balding"
+            ],
+            "Focused": [
+                "Shrinking"
+            ]
+        }
+    },
+    {
+        "Name": "Motor oil",
+        "Cost": 6,
+        "AlwaysAddEffect": "Slippery",
+        "SwitchEffects": {
+            "Energizing": [
+                "Munchies"
+            ],
+            "Foggy": [
+                "Toxic"
+            ],
+            "Paranoia": [
+                "Anti-gravity"
+            ],
+            "Euphoric": [
+                "Sedating"
+            ],
+            "Munchies": [
+                "Schizophrenic"
+            ]
+        }
+    },
+    {
+        "Name": "Megabean",
+        "Cost": 7,
+        "AlwaysAddEffect": "Foggy",
+        "SwitchEffects": {
+            "Energizing": [
+                "Cyclopean"
+            ],
+            "Sneaky": [
+                "Calming"
+            ],
+            "Slippery": [
+                "Toxic"
+            ],
+            "Jennerising": [
+                "Paranoia"
+            ],
+            "Thought-provoking": [
+                "Energizing"
+            ],
+            "Calming": [
+                "Glowing"
+            ],
+            "Seizure-inducing": [
+                "Focused"
+            ],
+            "Focused": [
+                "Disorienting"
+            ],
+            "Shrinking": [
+                "Electrifying"
+            ]
+        }
+    },
+    {
+        "Name": "Chili",
+        "Cost": 7,
+        "AlwaysAddEffect": "Spicy",
+        "SwitchEffects": {
+            "Sneaky": [
+                "Bright-eyed"
+            ],
+            "Anti-gravity": [
+                "Tropic-thunder"
+            ],
+            "Munchies": [
+                "Toxic"
+            ],
+            "Laxative": [
+                "Long-faced"
+            ],
+            "Shrinking": [
+                "Refreshing"
+            ]
+        }
+    },
+    {
+        "Name": "Battery",
+        "Cost": 8,
+        "AlwaysAddEffect": "Bright-eyed",
+        "SwitchEffects": {
+            "Euphoric": [
+                "Zombifying"
+            ],
+            "Munchies": [
+                "Tropic-thunder"
+            ],
+            "Cyclopean": [
+                "Glowing"
+            ],
+            "Laxative": [
+                "Calorie-dense"
+            ],
+            "Electrifying": [
+                "Euphoric"
+            ],
+            "Shrinking": [
+                "Munchies"
+            ]
+        }
+    },
+    {
+        "Name": "Iodine",
+        "Cost": 8,
+        "AlwaysAddEffect": "Jennerising",
+        "SwitchEffects": {
+            "Calorie-dense": [
+                "Gingeritis"
+            ],
+            "Toxic": [
+                "Sneaky"
+            ],
+            "Foggy": [
+                "Paranoia"
+            ],
+            "Calming": [
+                "Balding"
+            ],
+            "Refreshing": [
+                "Thought-provoking"
+            ],
+            "Euphoric": [
+                "Seizure-inducing"
+            ]
+        }
+    },
+    {
+        "Name": "Addy",
+        "Cost": 9,
+        "AlwaysAddEffect": "Thought-provoking",
+        "SwitchEffects": {
+            "Sedating": [
+                "Gingeritis"
+            ],
+            "Foggy": [
+                "Energizing"
+            ],
+            "Long-faced": [
+                "Electrifying"
+            ],
+            "Glowing": [
+                "Refreshing"
+            ],
+            "Explosive": [
+                "Euphoric"
+            ]
+        }
+    },
+    {
+        "Name": "Horse semen",
+        "Cost": 9,
+        "AlwaysAddEffect": "Long-faced",
+        "SwitchEffects": {
+            "Gingeritis": [
+                "Refreshing"
+            ],
+            "Thought-provoking": [
+                "Electrifying"
+            ],
+            "Anti-gravity": [
+                "Calming"
+            ],
+            "Seizure-inducing": [
+                "Energizing"
+            ]
+        }
+    }
+]
