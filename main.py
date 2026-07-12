@@ -1,7 +1,7 @@
 import cupy as cp
 import numpy as np
+import pandas as pd
 from numba import cuda
-from frontier import load_cupy_items
 from Stopwatch import Stopwatch
 import warnings
 from Item import Item
@@ -10,18 +10,17 @@ from Item import Item
 NUM_ITEMS = 16
 MAX_SWITCHES_PER_ITEM = 10
 
-always_masks = np.zeros(NUM_ITEMS, dtype=np.uint64)
-switch_counts = np.zeros(NUM_ITEMS, dtype=np.int32)
-switch_keys = np.zeros((NUM_ITEMS, MAX_SWITCHES_PER_ITEM), dtype=np.uint64)
-switch_values = np.zeros((NUM_ITEMS, MAX_SWITCHES_PER_ITEM), dtype=np.uint64)
 
-def modify_4_arrays(items_data):
-    global always_masks, switch_counts, switch_keys, switch_values
+def create_d_arrays(items_data: list[Item]):
+    always_masks = np.zeros(NUM_ITEMS, dtype=np.uint64)
+    switch_counts = np.zeros(NUM_ITEMS, dtype=np.int32)
+    switch_keys = np.zeros((NUM_ITEMS, MAX_SWITCHES_PER_ITEM), dtype=np.uint64)
+    switch_values = np.zeros((NUM_ITEMS, MAX_SWITCHES_PER_ITEM), dtype=np.uint64)
 
-    # Populate these arrays using your `items_gem.json` data and `effect_to_bitmask` dict
+    # Create rows with alwaysAddEffect and switchEffects for each Item
     for i, item in enumerate(items_data):
         always_masks[i] = item.always_add_effect.bitmask
-        
+
         switch_counts[i] = len(item.switch_effects)
         
         for j, (key, values) in enumerate(item.switch_effects.items()):
@@ -32,17 +31,16 @@ def modify_4_arrays(items_data):
             for val in values:
                 val_mask |= val.bitmask
             switch_values[i, j] = val_mask
+    
+    return cuda.to_device(always_masks), \
+           cuda.to_device(switch_counts), \
+           cuda.to_device(switch_keys), \
+           cuda.to_device(switch_values)
 
-    # Move item lookup structures to the GPU device
-    # d_always_masks = cuda.to_device(always_masks)
-    # d_switch_counts = cuda.to_device(switch_counts)
-    # d_switch_keys = cuda.to_device(switch_keys)
-    # d_switch_values = cuda.to_device(switch_values)
 
-    # return d_always_masks, d_switch_counts, d_switch_keys, d_switch_values
 
 @cuda.jit
-def apply_items_kernel(frontier, output):
+def apply_items_kernel(frontier, always_masks, switch_counts, switch_keys, switch_values, output):
     # Get global position of the thread
     state_idx, item_idx = cuda.grid(2)
     
@@ -71,18 +69,13 @@ def apply_items_kernel(frontier, output):
 
 
 def bfs():
-    # initial_state = 0x0000000000000000
-    global always_masks, switch_counts, switch_keys, switch_values
+    items = Item.from_json_file()
+    d_arys = create_d_arrays(items)
 
     stopwatch = Stopwatch()
     initial_state = 0
     frontier = cp.array([initial_state], dtype=cp.uint64)
     visited = cp.array([initial_state], dtype=cp.uint64)
-
-    # d_always_masks, \
-    #     d_switch_counts, \
-    #     d_switch_keys, \
-    #     d_switch_values = load_cupy_items()
 
     print(f"Starting real GPU BFS... Seed state: {hex(initial_state)}")
     print("-" * 50)
@@ -90,7 +83,7 @@ def bfs():
     generation = 1
     while frontier.size > 0:
         # Allocate a raw pool for the next generation expansions
-        raw_next_pool = cp.zeros(frontier.size * always_masks.size, dtype=cp.uint64)
+        raw_next_pool = cp.zeros(frontier.size * d_arys[0].size, dtype=cp.uint64)
 
         # Configure grid blocks based on the size of the frontier
         threads_per_block = (16, 16)
@@ -100,6 +93,10 @@ def bfs():
         # Launch kernel
         apply_items_kernel[grid_dims, threads_per_block](
             frontier, 
+            d_arys[0],
+            d_arys[1],
+            d_arys[2],
+            d_arys[3],
             raw_next_pool
         )
 
@@ -127,41 +124,7 @@ def bfs():
     print(f"Total Unique 64-bit States Discovered: {visited.size}")
 
 
-
-
-def main():
-    # Assuming frontier size is N
-    N = 10_000 
-    d_frontier = cp.random.randint(0, 2**32, size=N, dtype=cp.uint64)
-    d_output = cp.zeros(N * 16, dtype=cp.uint64)
-
-    d_always_masks, \
-        d_switch_counts, \
-        d_switch_keys, \
-        d_switch_values = load_cupy_items()
-
-    # Execution configurations
-    threads_per_block = (16, 16)
-    blocks_per_grid_x = (N + threads_per_block[0] - 1) // threads_per_block[0]
-    grid_dims = (blocks_per_grid_x, 1)
-
-    # Launch kernel
-    apply_items_kernel[grid_dims, threads_per_block](
-        d_frontier, 
-        d_always_masks, 
-        d_switch_counts, 
-        d_switch_keys, 
-        d_switch_values, 
-        d_output
-    )
-
-    print(d_output)
-
-
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
-
-    items = Item.from_json_file()
-    modify_4_arrays(items)
     
     bfs()
