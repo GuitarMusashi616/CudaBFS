@@ -4,6 +4,7 @@ import pandas as pd
 from numba import cuda
 from Stopwatch import Stopwatch
 import warnings
+from Effect import Effect
 from Item import Item
 
 
@@ -66,6 +67,84 @@ def apply_items_kernel(frontier, always_masks, switch_counts, switch_keys, switc
     # 4. Map back to the flattened 1D output array (Size: len(frontier) * 16)
     output_idx = state_idx * 16 + item_idx
     output[output_idx] = current_mask     
+
+
+@cuda.jit
+def calculate_multipliers_kernel(states, effect_masks, effect_multipliers, multipliers):
+    """Sum the multipliers for every effect bit set in each state."""
+    state_index = cuda.grid(1)
+    if state_index >= states.size:
+        return
+
+    state = states[state_index]
+    multiplier = 1.0
+    for effect_index in range(effect_masks.size):
+        if state & effect_masks[effect_index]:
+            multiplier += effect_multipliers[effect_index]
+    multipliers[state_index] = multiplier
+
+
+def calculate_state_multipliers(visited):
+    """Return one summed effect multiplier per state in ``visited``.
+
+    The state masks and the resulting scores remain on the GPU, so this only
+    requires a single linear kernel launch regardless of how many states BFS
+    discovers.
+    """
+    effects = list(Effect)
+    effect_masks = np.asarray([effect.bitmask for effect in effects], dtype=np.uint64)
+    effect_multipliers = np.asarray(
+        [effect.multiplier for effect in effects], dtype=np.float32
+    )
+    multipliers = cp.empty(visited.size, dtype=cp.float32)
+
+    threads_per_block = 256
+    blocks_per_grid = (visited.size + threads_per_block - 1) // threads_per_block
+    calculate_multipliers_kernel[blocks_per_grid, threads_per_block](
+        visited,
+        cuda.to_device(effect_masks),
+        cuda.to_device(effect_multipliers),
+        multipliers,
+    )
+    return multipliers
+
+
+def show_top_multiplier_states(visited, multipliers, limit=500):
+    """Print and return the highest-scoring reachable states.
+
+    Scores are sorted descending on the GPU.  Only the requested leading rows
+    are transferred to the host for human-readable output.
+    """
+    count = min(limit, visited.size)
+    if count == 0:
+        return pd.DataFrame(columns=["rank", "state_index", "state", "multiplier", "effects"])
+
+    sorted_indices = cp.argsort(multipliers)[::-1]
+    top_indices = sorted_indices[:count]
+
+    host_indices = cp.asnumpy(top_indices)
+    host_states = cp.asnumpy(visited[top_indices])
+    host_multipliers = cp.asnumpy(multipliers[top_indices])
+    effects = list(Effect)
+    rows = []
+    for rank, (state_index, state, multiplier) in enumerate(
+        zip(host_indices, host_states, host_multipliers), start=1
+    ):
+        active_effects = ", ".join(
+            effect.name for effect in effects if int(state) & effect.bitmask
+        )
+        rows.append({
+            "rank": rank,
+            "state_index": int(state_index),
+            "state": hex(int(state)),
+            "multiplier": float(multiplier),
+            "effects": active_effects,
+        })
+
+    top_states = pd.DataFrame(rows)
+    # print("\nTop states by summed effect multiplier:")
+    # print(top_states.to_string(index=False))
+    return top_states
 
 
 def reconstruct_item_indices(state_index, parent_indices, item_indices):
@@ -169,5 +248,7 @@ def bfs():
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
-    
-    bfs()
+
+    visited, _, _ = bfs()
+    state_multipliers = calculate_state_multipliers(visited)
+    top_states = show_top_multiplier_states(visited, state_multipliers)
