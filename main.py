@@ -6,13 +6,24 @@ from Stopwatch import Stopwatch
 import warnings
 from Effect import Effect
 from Item import Item
-import streamlit
+import streamlit as st
 
 
 NUM_ITEMS = 16
 MAX_SWITCHES_PER_ITEM = 10
 BASE_PRICE = 35.0
 BASE_COST = 30.0
+
+
+def effects_to_state(effects: list[Effect]) -> int:
+    """Return the state mask containing every effect in ``effects``.
+
+    Example: ``effects_to_state([Effect.CALMING])``.
+    """
+    state = 0
+    for effect in effects:
+        state |= effect.bitmask
+    return state
 
 
 def create_d_arrays(items_data: list[Item]):
@@ -116,21 +127,51 @@ def calculate_state_multipliers(visited, total_costs, base_price=BASE_PRICE):
 
 def show_top_profit_states(
     visited, prices, total_costs, profits, parent_indices, item_indices,
-    items, limit=500,
+    item_counts, items, limit=500, sort_by="profit", ascending=False,
 ):
-    """Return the highest-profit states in descending profit order.
+    """Return states ordered by a selectable numeric report column.
 
-    Profits are sorted descending on the GPU.  Only the requested leading rows
-    are transferred to the host for human-readable output.
+    Sorting occurs on the GPU; only the selected report rows are transferred to
+    the host for path/effect formatting.  Per-item columns exclude the seed
+    state (which has zero items) by placing its undefined values last.
     """
     count = min(limit, visited.size)
     if count == 0:
         return pd.DataFrame(columns=[
-            "rank", "state_index", "state", "price", "profit",
-            "total_cost", "item_order", "effects",
+            "price", "profit", "total_cost", "price_per_item",
+            "profit_per_item", "item_order", "effects",
         ])
 
-    sorted_indices = cp.argsort(profits)[::-1]
+    item_counts_float = item_counts.astype(cp.float32)
+    # CuPy ufuncs do not consistently support NumPy's ``where=`` keyword.
+    # Substitute a safe denominator first, then explicitly restore NaN for
+    # the seed state, which has zero applied items.
+    safe_item_counts = cp.where(item_counts == 0, 1.0, item_counts_float)
+    price_per_item = cp.where(
+        item_counts == 0, cp.nan, prices / safe_item_counts
+    )
+    profit_per_item = cp.where(
+        item_counts == 0, cp.nan, profits / safe_item_counts
+    )
+    sortable_columns = {
+        "price": prices,
+        "profit": profits,
+        "total_cost": total_costs,
+        "price_per_item": price_per_item,
+        "profit_per_item": profit_per_item,
+    }
+    if sort_by not in sortable_columns:
+        valid_columns = ", ".join(sortable_columns)
+        raise ValueError(f"sort_by must be one of: {valid_columns}")
+
+    sort_values = sortable_columns[sort_by]
+    # CuPy's NaN ordering is backend-dependent, so use an explicit sentinel
+    # that places undefined zero-item values after all valid states.
+    nan_last_value = cp.inf if ascending else -cp.inf
+    sort_values = cp.where(cp.isnan(sort_values), nan_last_value, sort_values)
+    sorted_indices = cp.argsort(sort_values)
+    if not ascending:
+        sorted_indices = sorted_indices[::-1]
     top_indices = sorted_indices[:count]
 
     host_indices = cp.asnumpy(top_indices)
@@ -138,22 +179,25 @@ def show_top_profit_states(
     host_prices = cp.asnumpy(prices[top_indices])
     host_costs = cp.asnumpy(total_costs[top_indices])
     host_profits = cp.asnumpy(profits[top_indices])
+    host_item_counts = cp.asnumpy(item_counts[top_indices])
     effects = list(Effect)
     rows = []
-    for rank, (state_index, state, price, total_cost, profit) in enumerate(
-        zip(host_indices, host_states, host_prices, host_costs, host_profits), start=1
+    for state_index, state, price, total_cost, profit, item_count in zip(
+        host_indices, host_states, host_prices, host_costs, host_profits,
+        host_item_counts,
     ):
         active_effects = ", ".join(
             effect.name for effect in effects if int(state) & effect.bitmask
         )
         path = reconstruct_item_indices(state_index, parent_indices, item_indices)
+        price_per_item = float(price) / item_count if item_count else np.nan
+        profit_per_item = float(profit) / item_count if item_count else np.nan
         rows.append({
-            "rank": rank,
-            "state_index": int(state_index),
-            "state": hex(int(state)),
             "price": float(price),
             "profit": float(profit),
             "total_cost": float(total_cost),
+            "price_per_item": price_per_item,
+            "profit_per_item": profit_per_item,
             "item_order": " -> ".join(items[item_index].name for item_index in path),
             "effects": active_effects,
         })
@@ -178,13 +222,13 @@ def reconstruct_item_indices(state_index, parent_indices, item_indices):
     return path
 
 
-def bfs():
+def bfs(initial_state=0, base_cost=BASE_COST):
+    """Explore states reachable from ``initial_state`` using ``base_cost``."""
     items = Item.from_json_file()
     d_arys = create_d_arrays(items)
     item_costs = cp.asarray([item.cost for item in items], dtype=cp.float32)
 
     stopwatch = Stopwatch()
-    initial_state = 0
     frontier = cp.array([initial_state], dtype=cp.uint64)
     visited = cp.array([initial_state], dtype=cp.uint64)
 
@@ -194,8 +238,9 @@ def bfs():
     frontier_indices = cp.array([0], dtype=cp.int32)
     parent_indices = cp.array([-1], dtype=cp.int32)
     item_indices = cp.array([-1], dtype=cp.int8)
+    item_counts = cp.array([0], dtype=cp.int32)
     # Costs use the same visited-array alignment as the parent/item links.
-    total_costs = cp.array([BASE_COST], dtype=cp.float32)
+    total_costs = cp.array([base_cost], dtype=cp.float32)
 
     print(f"Starting real GPU BFS... Seed state: {hex(initial_state)}")
     print("-" * 50)
@@ -243,6 +288,7 @@ def bfs():
         next_parent_indices = frontier_indices[parent_frontier_rows]
         next_item_indices = (first_output_indices % d_arys[0].size).astype(cp.int8)
         next_total_costs = total_costs[next_parent_indices] + item_costs[next_item_indices]
+        next_item_counts = item_counts[next_parent_indices] + 1
         
         # Step D: Update master visited set with the newly discovered frontier
         if frontier.size > 0:
@@ -250,6 +296,7 @@ def bfs():
             parent_indices = cp.concatenate([parent_indices, next_parent_indices])
             item_indices = cp.concatenate([item_indices, next_item_indices])
             total_costs = cp.concatenate([total_costs, next_total_costs])
+            item_counts = cp.concatenate([item_counts, next_item_counts])
             frontier_indices = cp.arange(
                 visited.size - frontier.size, visited.size, dtype=cp.int32
             )
@@ -262,18 +309,55 @@ def bfs():
     print("-" * 50)
     print(f"BFS Complete! Explored every reachable state combination.")
     print(f"Total Unique 64-bit States Discovered: {visited.size}")
-    return visited, parent_indices, item_indices, total_costs, items
+    return visited, parent_indices, item_indices, total_costs, item_counts, items
 
+
+def run(
+    base_price=BASE_PRICE, base_cost=BASE_COST, initial_state=0, limit=500,
+    sort_by="profit", ascending=False,
+):
+    """Run BFS and return the state DataFrame ordered by ``sort_by``.
+
+    ``initial_state`` can be built with :func:`effects_to_state`, e.g.
+    ``run(initial_state=effects_to_state([Effect.CALMING]))``.
+    """
+    visited, parent_indices, item_indices, total_costs, item_counts, items = bfs(
+        initial_state=initial_state, base_cost=base_cost
+    )
+    _, prices, total_costs, profits = calculate_state_multipliers(
+        visited, total_costs, base_price=base_price
+    )
+    return show_top_profit_states(
+        visited, prices, total_costs, profits, parent_indices, item_indices,
+        item_counts, items, limit=limit, sort_by=sort_by, ascending=ascending,
+    )
+
+class Price:
+    WEED = 35
+    METH = 70
+
+class Cost:
+    OG_KUSH = 30
+    SOUR_DIESEL = 35
+    GREEN_CRACK = 40
+    GRANDDADDY_PURPLE = 45
+    # 60, 80, 110 for pseudo low med high 10x
+    # pseudo, phosphorus, acid
+    METH = 8 + 40 + 40
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
 
-    visited, parent_indices, item_indices, total_costs, items = bfs()
-    _, prices, total_costs, profits = calculate_state_multipliers(
-        visited, total_costs
+    top_states = run(
+        base_cost = Cost.OG_KUSH,
+        base_price = Price.WEED,
+        initial_state = effects_to_state([Effect.CALMING]),
+        limit = 500,
+        sort_by="profit",
+        ascending=False,
     )
-    top_states = show_top_profit_states(
-        visited, prices, total_costs, profits, parent_indices, item_indices, items
-    )
+    top_states.to_csv('output/og_kush_top_500_profit.csv')
+
     # print(top_states.to_string(index=False))
-    streamlit.dataframe(top_states)
+    # top_states = pd.read_csv('output/meth_top_500_profit.csv', index_col=0)
+    # st.dataframe(top_states)
