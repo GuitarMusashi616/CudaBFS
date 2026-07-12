@@ -68,6 +68,23 @@ def apply_items_kernel(frontier, always_masks, switch_counts, switch_keys, switc
     output[output_idx] = current_mask     
 
 
+def reconstruct_item_indices(state_index, parent_indices, item_indices):
+    """Return the BFS item path to ``state_index`` in forward order.
+
+    ``parent_indices`` and ``item_indices`` are the arrays returned by
+    :func:`bfs`.  Parent links are indices into the visited-state array rather
+    than duplicate 64-bit masks, so reconstruction only walks the path length.
+    """
+    path = []
+    while state_index != -1:
+        item_index = int(item_indices[state_index])
+        if item_index != -1:  # The initial state has no incoming item.
+            path.append(item_index)
+        state_index = int(parent_indices[state_index])
+    path.reverse()
+    return path
+
+
 def bfs():
     items = Item.from_json_file()
     d_arys = create_d_arrays(items)
@@ -76,6 +93,13 @@ def bfs():
     initial_state = 0
     frontier = cp.array([initial_state], dtype=cp.uint64)
     visited = cp.array([initial_state], dtype=cp.uint64)
+
+    # These are aligned with ``visited``.  A parent is stored as an index into
+    # visited instead of another uint64 state, which is both smaller and makes
+    # a path reconstruction a direct O(path length) walk.
+    frontier_indices = cp.array([0], dtype=cp.int32)
+    parent_indices = cp.array([-1], dtype=cp.int32)
+    item_indices = cp.array([-1], dtype=cp.int8)
 
     print(f"Starting real GPU BFS... Seed state: {hex(initial_state)}")
     print("-" * 50)
@@ -100,19 +124,37 @@ def bfs():
             raw_next_pool
         )
 
-        # Step A: Filter out duplicates generated *within* this new batch
-        unique_next_pool = cp.unique(raw_next_pool)
+        # Step A: Keep the first expansion for every child.  Its raw-output
+        # index identifies both the parent frontier row and the item used, so
+        # provenance remains aligned without a separate search or kernel.
+        unique_next_pool, first_output_indices = cp.unique(
+            raw_next_pool, return_index=True
+        )
         
         # Step B: Eliminate states we have already visited in previous generations.
         # cp.in1d returns a boolean mask indicating if elements exist in 'visited'
         already_seen_mask = cp.in1d(unique_next_pool, visited)
         
-        # Step C: The new frontier is explicitly elements that are NOT already seen
-        frontier = unique_next_pool[~already_seen_mask]
+        # Step C: The new frontier is explicitly elements that are NOT already seen.
+        new_state_mask = ~already_seen_mask
+        frontier = unique_next_pool[new_state_mask]
+        first_output_indices = first_output_indices[new_state_mask]
+
+        # raw_next_pool is laid out as [frontier state][item].  Convert the
+        # selected first output for each child into its parent visited index
+        # and the item that created it.
+        parent_frontier_rows = first_output_indices // d_arys[0].size
+        next_parent_indices = frontier_indices[parent_frontier_rows]
+        next_item_indices = (first_output_indices % d_arys[0].size).astype(cp.int8)
         
         # Step D: Update master visited set with the newly discovered frontier
         if frontier.size > 0:
             visited = cp.concatenate([visited, frontier])
+            parent_indices = cp.concatenate([parent_indices, next_parent_indices])
+            item_indices = cp.concatenate([item_indices, next_item_indices])
+            frontier_indices = cp.arange(
+                visited.size - frontier.size, visited.size, dtype=cp.int32
+            )
         
         print(f"Gen {generation:02d} | Time: {stopwatch.get_time(): 0.2f} | Unique Pool: {unique_next_pool.size:<6} | New Frontier: {frontier.size:<6} | Total Global States Mastered: {visited.size}")
         # print(f"Gen {generation:02d} | Unique Pool: {unique_next_pool.size:<6} | New Frontier: {frontier.size:<6} | Total Global States Mastered: {visited.size}")
@@ -122,6 +164,7 @@ def bfs():
     print("-" * 50)
     print(f"BFS Complete! Explored every reachable state combination.")
     print(f"Total Unique 64-bit States Discovered: {visited.size}")
+    return visited, parent_indices, item_indices
 
 
 if __name__ == "__main__":
