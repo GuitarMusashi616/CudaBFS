@@ -6,10 +6,13 @@ from Stopwatch import Stopwatch
 import warnings
 from Effect import Effect
 from Item import Item
+import streamlit
 
 
 NUM_ITEMS = 16
 MAX_SWITCHES_PER_ITEM = 10
+BASE_PRICE = 35.0
+BASE_COST = 30.0
 
 
 def create_d_arrays(items_data: list[Item]):
@@ -84,12 +87,12 @@ def calculate_multipliers_kernel(states, effect_masks, effect_multipliers, multi
     multipliers[state_index] = multiplier
 
 
-def calculate_state_multipliers(visited):
-    """Return one summed effect multiplier per state in ``visited``.
+def calculate_state_multipliers(visited, total_costs, base_price=BASE_PRICE):
+    """Return multiplier, price, total cost, and profit for each state.
 
-    The state masks and the resulting scores remain on the GPU, so this only
-    requires a single linear kernel launch regardless of how many states BFS
-    discovers.
+    ``total_costs`` is aligned with ``visited`` and is built by :func:`bfs`
+    from each state's recorded parent and incoming item.  Scoring, pricing,
+    and profit calculation all remain on the GPU.
     """
     effects = list(Effect)
     effect_masks = np.asarray([effect.bitmask for effect in effects], dtype=np.uint64)
@@ -106,45 +109,56 @@ def calculate_state_multipliers(visited):
         cuda.to_device(effect_multipliers),
         multipliers,
     )
-    return multipliers
+    prices = multipliers * np.float32(base_price)
+    profits = prices - total_costs
+    return multipliers, prices, total_costs, profits
 
 
-def show_top_multiplier_states(visited, multipliers, limit=500):
-    """Print and return the highest-scoring reachable states.
+def show_top_profit_states(
+    visited, prices, total_costs, profits, parent_indices, item_indices,
+    items, limit=500,
+):
+    """Return the highest-profit states in descending profit order.
 
-    Scores are sorted descending on the GPU.  Only the requested leading rows
+    Profits are sorted descending on the GPU.  Only the requested leading rows
     are transferred to the host for human-readable output.
     """
     count = min(limit, visited.size)
     if count == 0:
-        return pd.DataFrame(columns=["rank", "state_index", "state", "multiplier", "effects"])
+        return pd.DataFrame(columns=[
+            "rank", "state_index", "state", "price", "profit",
+            "total_cost", "item_order", "effects",
+        ])
 
-    sorted_indices = cp.argsort(multipliers)[::-1]
+    sorted_indices = cp.argsort(profits)[::-1]
     top_indices = sorted_indices[:count]
 
     host_indices = cp.asnumpy(top_indices)
     host_states = cp.asnumpy(visited[top_indices])
-    host_multipliers = cp.asnumpy(multipliers[top_indices])
+    host_prices = cp.asnumpy(prices[top_indices])
+    host_costs = cp.asnumpy(total_costs[top_indices])
+    host_profits = cp.asnumpy(profits[top_indices])
     effects = list(Effect)
     rows = []
-    for rank, (state_index, state, multiplier) in enumerate(
-        zip(host_indices, host_states, host_multipliers), start=1
+    for rank, (state_index, state, price, total_cost, profit) in enumerate(
+        zip(host_indices, host_states, host_prices, host_costs, host_profits), start=1
     ):
         active_effects = ", ".join(
             effect.name for effect in effects if int(state) & effect.bitmask
         )
+        path = reconstruct_item_indices(state_index, parent_indices, item_indices)
         rows.append({
             "rank": rank,
             "state_index": int(state_index),
             "state": hex(int(state)),
-            "multiplier": float(multiplier),
+            "price": float(price),
+            "profit": float(profit),
+            "total_cost": float(total_cost),
+            "item_order": " -> ".join(items[item_index].name for item_index in path),
             "effects": active_effects,
         })
 
-    top_states = pd.DataFrame(rows)
-    # print("\nTop states by summed effect multiplier:")
-    # print(top_states.to_string(index=False))
-    return top_states
+    return pd.DataFrame(rows)
 
 
 def reconstruct_item_indices(state_index, parent_indices, item_indices):
@@ -167,6 +181,7 @@ def reconstruct_item_indices(state_index, parent_indices, item_indices):
 def bfs():
     items = Item.from_json_file()
     d_arys = create_d_arrays(items)
+    item_costs = cp.asarray([item.cost for item in items], dtype=cp.float32)
 
     stopwatch = Stopwatch()
     initial_state = 0
@@ -179,6 +194,8 @@ def bfs():
     frontier_indices = cp.array([0], dtype=cp.int32)
     parent_indices = cp.array([-1], dtype=cp.int32)
     item_indices = cp.array([-1], dtype=cp.int8)
+    # Costs use the same visited-array alignment as the parent/item links.
+    total_costs = cp.array([BASE_COST], dtype=cp.float32)
 
     print(f"Starting real GPU BFS... Seed state: {hex(initial_state)}")
     print("-" * 50)
@@ -225,12 +242,14 @@ def bfs():
         parent_frontier_rows = first_output_indices // d_arys[0].size
         next_parent_indices = frontier_indices[parent_frontier_rows]
         next_item_indices = (first_output_indices % d_arys[0].size).astype(cp.int8)
+        next_total_costs = total_costs[next_parent_indices] + item_costs[next_item_indices]
         
         # Step D: Update master visited set with the newly discovered frontier
         if frontier.size > 0:
             visited = cp.concatenate([visited, frontier])
             parent_indices = cp.concatenate([parent_indices, next_parent_indices])
             item_indices = cp.concatenate([item_indices, next_item_indices])
+            total_costs = cp.concatenate([total_costs, next_total_costs])
             frontier_indices = cp.arange(
                 visited.size - frontier.size, visited.size, dtype=cp.int32
             )
@@ -243,12 +262,18 @@ def bfs():
     print("-" * 50)
     print(f"BFS Complete! Explored every reachable state combination.")
     print(f"Total Unique 64-bit States Discovered: {visited.size}")
-    return visited, parent_indices, item_indices
+    return visited, parent_indices, item_indices, total_costs, items
 
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
 
-    visited, _, _ = bfs()
-    state_multipliers = calculate_state_multipliers(visited)
-    top_states = show_top_multiplier_states(visited, state_multipliers)
+    visited, parent_indices, item_indices, total_costs, items = bfs()
+    _, prices, total_costs, profits = calculate_state_multipliers(
+        visited, total_costs
+    )
+    top_states = show_top_profit_states(
+        visited, prices, total_costs, profits, parent_indices, item_indices, items
+    )
+    # print(top_states.to_string(index=False))
+    streamlit.dataframe(top_states)
