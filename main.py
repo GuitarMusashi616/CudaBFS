@@ -69,14 +69,41 @@ def apply_items_kernel(frontier, always_masks, switch_counts, switch_keys, switc
     # 2. Step 1: Always add the item's base effect
     current_mask |= always_masks[item_idx]
     
+    # Initialize the effects to remove and the effects to add
+    remove_effects = 0
+    add_effects = 0
+
     # 3. Step 2: Process the item's switches sequentially
     num_switches = switch_counts[item_idx]
     for j in range(num_switches):
         key_mask = switch_keys[item_idx, j]
         # Check if the key bit is set
         if (current_mask & key_mask) != 0:
-            current_mask &= ~key_mask            # Clear the trigger bit
-            current_mask |= switch_values[item_idx, j] # Set the value bits
+            # Set the key_mask into remove_effects
+            # 0001 key_mask
+            # 0100 remove_eff
+            # 0101 - OR
+            remove_effects |= key_mask
+            # current_mask |= ~key_mask            # Clear the trigger bit
+            # current_mask |= switch_values[item_idx, j] # Set the value bits
+
+            # 1010
+            # 0110
+            # 1110 - OR= res
+            add_effects |= switch_values[item_idx, j] # Set the value bits
+    
+    # Apply remove_effects to the current_mask first
+    # 1101 current_mask
+    # 0111 remove_effects
+    # 1000 ~remove_effects
+    # 1000 result
+    current_mask &= ~remove_effects
+
+    # Apply add_effects next
+    # 1010 current_mask
+    # 1101 add_effects
+    # 1111 res
+    current_mask |= add_effects
             
     # 4. Map back to the flattened 1D output array (Size: len(frontier) * 16)
     output_idx = state_idx * 16 + item_idx
@@ -359,195 +386,195 @@ if __name__ == "__main__":
     )
     top_states.to_csv('output/og_kush_top_500_price.csv')
 
-    top_states = run(
-        base_cost = Cost.SOUR_DIESEL,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.REFRESHING]),
-        limit = 500,
-        sort_by="price",
-        ascending=False,
-    )
-    top_states.to_csv('output/sour_diesel_top_500_price.csv')
+    # top_states = run(
+    #     base_cost = Cost.SOUR_DIESEL,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.REFRESHING]),
+    #     limit = 500,
+    #     sort_by="price",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/sour_diesel_top_500_price.csv')
 
-    top_states = run(
-        base_cost = Cost.GREEN_CRACK,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.ENERGIZING]),
-        limit = 500,
-        sort_by="price",
-        ascending=False,
-    )
-    top_states.to_csv('output/green_crack_top_500_price.csv')
+    # top_states = run(
+    #     base_cost = Cost.GREEN_CRACK,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.ENERGIZING]),
+    #     limit = 500,
+    #     sort_by="price",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/green_crack_top_500_price.csv')
 
-    top_states = run(
-        base_cost = Cost.GRANDDADDY_PURPLE,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.SEDATING]),
-        limit = 500,
-        sort_by="price",
-        ascending=False,
-    )
-    top_states.to_csv('output/granddaddy_purple_top_500_price.csv')
+    # top_states = run(
+    #     base_cost = Cost.GRANDDADDY_PURPLE,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.SEDATING]),
+    #     limit = 500,
+    #     sort_by="price",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/granddaddy_purple_top_500_price.csv')
 
-    top_states = run(
-        base_cost = Cost.METH,
-        base_price = Price.METH,
-        initial_state = 0,
-        limit = 500,
-        sort_by="price",
-        ascending=False,
-    )
-    top_states.to_csv('output/meth_top_500_price.csv')
+    # top_states = run(
+    #     base_cost = Cost.METH,
+    #     base_price = Price.METH,
+    #     initial_state = 0,
+    #     limit = 500,
+    #     sort_by="price",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/meth_top_500_price.csv')
 
-    top_states = run(
-        base_cost = Cost.OG_KUSH,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.CALMING]),
-        limit = 500,
-        sort_by="profit",
-        ascending=False,
-    )
-    top_states.to_csv('output/og_kush_top_500_profit.csv')
+    # top_states = run(
+    #     base_cost = Cost.OG_KUSH,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.CALMING]),
+    #     limit = 500,
+    #     sort_by="profit",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/og_kush_top_500_profit.csv')
 
-    top_states = run(
-        base_cost = Cost.SOUR_DIESEL,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.REFRESHING]),
-        limit = 500,
-        sort_by="profit",
-        ascending=False,
-    )
-    top_states.to_csv('output/sour_diesel_top_500_profit.csv')
+    # top_states = run(
+    #     base_cost = Cost.SOUR_DIESEL,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.REFRESHING]),
+    #     limit = 500,
+    #     sort_by="profit",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/sour_diesel_top_500_profit.csv')
 
-    top_states = run(
-        base_cost = Cost.GREEN_CRACK,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.ENERGIZING]),
-        limit = 500,
-        sort_by="profit",
-        ascending=False,
-    )
-    top_states.to_csv('output/green_crack_top_500_profit.csv')
+    # top_states = run(
+    #     base_cost = Cost.GREEN_CRACK,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.ENERGIZING]),
+    #     limit = 500,
+    #     sort_by="profit",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/green_crack_top_500_profit.csv')
 
-    top_states = run(
-        base_cost = Cost.GRANDDADDY_PURPLE,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.SEDATING]),
-        limit = 500,
-        sort_by="profit",
-        ascending=False,
-    )
-    top_states.to_csv('output/granddaddy_purple_top_500_profit.csv')
+    # top_states = run(
+    #     base_cost = Cost.GRANDDADDY_PURPLE,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.SEDATING]),
+    #     limit = 500,
+    #     sort_by="profit",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/granddaddy_purple_top_500_profit.csv')
 
-    top_states = run(
-        base_cost = Cost.METH,
-        base_price = Price.METH,
-        initial_state = 0,
-        limit = 500,
-        sort_by="profit",
-        ascending=False,
-    )
-    top_states.to_csv('output/meth_top_500_profit.csv')
+    # top_states = run(
+    #     base_cost = Cost.METH,
+    #     base_price = Price.METH,
+    #     initial_state = 0,
+    #     limit = 500,
+    #     sort_by="profit",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/meth_top_500_profit.csv')
 
-    top_states = run(
-        base_cost = Cost.OG_KUSH,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.CALMING]),
-        limit = 500,
-        sort_by="profit_per_item",
-        ascending=False,
-    )
-    top_states.to_csv('output/og_kush_top_500_profit_per_item.csv')
+    # top_states = run(
+    #     base_cost = Cost.OG_KUSH,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.CALMING]),
+    #     limit = 500,
+    #     sort_by="profit_per_item",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/og_kush_top_500_profit_per_item.csv')
 
-    top_states = run(
-        base_cost = Cost.SOUR_DIESEL,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.REFRESHING]),
-        limit = 500,
-        sort_by="profit_per_item",
-        ascending=False,
-    )
-    top_states.to_csv('output/sour_diesel_top_500_profit_per_item.csv')
+    # top_states = run(
+    #     base_cost = Cost.SOUR_DIESEL,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.REFRESHING]),
+    #     limit = 500,
+    #     sort_by="profit_per_item",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/sour_diesel_top_500_profit_per_item.csv')
 
-    top_states = run(
-        base_cost = Cost.GREEN_CRACK,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.ENERGIZING]),
-        limit = 500,
-        sort_by="profit_per_item",
-        ascending=False,
-    )
-    top_states.to_csv('output/green_crack_top_500_profit_per_item.csv')
+    # top_states = run(
+    #     base_cost = Cost.GREEN_CRACK,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.ENERGIZING]),
+    #     limit = 500,
+    #     sort_by="profit_per_item",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/green_crack_top_500_profit_per_item.csv')
 
-    top_states = run(
-        base_cost = Cost.GRANDDADDY_PURPLE,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.SEDATING]),
-        limit = 500,
-        sort_by="profit_per_item",
-        ascending=False,
-    )
-    top_states.to_csv('output/granddaddy_purple_top_500_profit_per_item.csv')
+    # top_states = run(
+    #     base_cost = Cost.GRANDDADDY_PURPLE,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.SEDATING]),
+    #     limit = 500,
+    #     sort_by="profit_per_item",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/granddaddy_purple_top_500_profit_per_item.csv')
 
-    top_states = run(
-        base_cost = Cost.METH,
-        base_price = Price.METH,
-        initial_state = 0,
-        limit = 500,
-        sort_by="profit_per_item",
-        ascending=False,
-    )
-    top_states.to_csv('output/meth_top_500_profit_per_item.csv')
+    # top_states = run(
+    #     base_cost = Cost.METH,
+    #     base_price = Price.METH,
+    #     initial_state = 0,
+    #     limit = 500,
+    #     sort_by="profit_per_item",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/meth_top_500_profit_per_item.csv')
 
-    top_states = run(
-        base_cost = Cost.OG_KUSH,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.CALMING]),
-        limit = 500,
-        sort_by="price_per_item",
-        ascending=False,
-    )
-    top_states.to_csv('output/og_kush_top_500_price_per_item.csv')
+    # top_states = run(
+    #     base_cost = Cost.OG_KUSH,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.CALMING]),
+    #     limit = 500,
+    #     sort_by="price_per_item",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/og_kush_top_500_price_per_item.csv')
 
-    top_states = run(
-        base_cost = Cost.SOUR_DIESEL,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.REFRESHING]),
-        limit = 500,
-        sort_by="price_per_item",
-        ascending=False,
-    )
-    top_states.to_csv('output/sour_diesel_top_500_price_per_item.csv')
+    # top_states = run(
+    #     base_cost = Cost.SOUR_DIESEL,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.REFRESHING]),
+    #     limit = 500,
+    #     sort_by="price_per_item",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/sour_diesel_top_500_price_per_item.csv')
 
-    top_states = run(
-        base_cost = Cost.GREEN_CRACK,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.ENERGIZING]),
-        limit = 500,
-        sort_by="price_per_item",
-        ascending=False,
-    )
-    top_states.to_csv('output/green_crack_top_500_price_per_item.csv')
+    # top_states = run(
+    #     base_cost = Cost.GREEN_CRACK,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.ENERGIZING]),
+    #     limit = 500,
+    #     sort_by="price_per_item",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/green_crack_top_500_price_per_item.csv')
 
-    top_states = run(
-        base_cost = Cost.GRANDDADDY_PURPLE,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.SEDATING]),
-        limit = 500,
-        sort_by="price_per_item",
-        ascending=False,
-    )
-    top_states.to_csv('output/granddaddy_purple_top_500_price_per_item.csv')
+    # top_states = run(
+    #     base_cost = Cost.GRANDDADDY_PURPLE,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.SEDATING]),
+    #     limit = 500,
+    #     sort_by="price_per_item",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/granddaddy_purple_top_500_price_per_item.csv')
 
-    top_states = run(
-        base_cost = Cost.METH,
-        base_price = Price.METH,
-        initial_state = 0,
-        limit = 500,
-        sort_by="price_per_item",
-        ascending=False,
-    )
-    top_states.to_csv('output/meth_top_500_price_per_item.csv')
+    # top_states = run(
+    #     base_cost = Cost.METH,
+    #     base_price = Price.METH,
+    #     initial_state = 0,
+    #     limit = 500,
+    #     sort_by="price_per_item",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/meth_top_500_price_per_item.csv')
 
     # print(top_states.to_string(index=False))
     # top_states = pd.read_csv('output/meth_top_500_profit.csv', index_col=0)
