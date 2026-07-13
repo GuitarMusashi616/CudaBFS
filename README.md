@@ -1,6 +1,7 @@
 # CUDA BFS State Explorer
 
-This project explores every effect state reachable from the item definitions in
+This project explores every combination of products available in the game Schedule I. 
+It explores every effect state reachable from the item definitions in
 `data/items.json` using a CUDA-accelerated breadth-first search (BFS).  It
 calculates prices and profits for each discovered state, writes ranked CSV
 reports to `output/`, and includes a Streamlit app for browsing or comparing
