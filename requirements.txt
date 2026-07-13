@@ -1,0 +1,7 @@
+# Install the CuPy build that matches the CUDA major version supported by your
+# NVIDIA driver.  See README.md for CUDA 11 and CPU-only environment guidance.
+cupy-cuda12x
+numba
+numpy
+pandas
+streamlit
