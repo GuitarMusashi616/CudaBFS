@@ -376,15 +376,15 @@ class Cost:
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
 
-    top_states = run(
-        base_cost = Cost.OG_KUSH,
-        base_price = Price.WEED,
-        initial_state = effects_to_state([Effect.CALMING]),
-        limit = 500,
-        sort_by="price",
-        ascending=False,
-    )
-    top_states.to_csv('output/og_kush_top_500_price_new.csv')
+    # top_states = run(
+    #     base_cost = Cost.OG_KUSH,
+    #     base_price = Price.WEED,
+    #     initial_state = effects_to_state([Effect.CALMING]),
+    #     limit = 500,
+    #     sort_by="price",
+    #     ascending=False,
+    # )
+    # top_states.to_csv('output/og_kush_top_500_price_new.csv')
 
     # top_states = run(
     #     base_cost = Cost.SOUR_DIESEL,
