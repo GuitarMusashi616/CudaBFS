@@ -1,0 +1,13 @@
+mega bean, energy drink, banana =>
+Focused
+Laxative
+Athletic
+Gingeritis
+
+mega bean, energy drink, banana, Paracetamol => 
+
+Focused
+Laxative
+Athletic
+Gingeritis
+Sneaky

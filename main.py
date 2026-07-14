@@ -249,7 +249,7 @@ def reconstruct_item_indices(state_index, parent_indices, item_indices):
     return path
 
 
-def bfs(initial_state=0, base_cost=BASE_COST):
+def bfs(initial_state=0, base_cost=BASE_COST, num_gens=12):
     """Explore states reachable from ``initial_state`` using ``base_cost``."""
     items = Item.from_json_file()
     d_arys = create_d_arrays(items)
@@ -273,7 +273,7 @@ def bfs(initial_state=0, base_cost=BASE_COST):
     print("-" * 50)
     
     generation = 1
-    while frontier.size > 0:
+    while frontier.size > 0 and generation <= num_gens:
         # Allocate a raw pool for the next generation expansions
         raw_next_pool = cp.zeros(frontier.size * d_arys[0].size, dtype=cp.uint64)
 
@@ -384,7 +384,7 @@ if __name__ == "__main__":
         sort_by="price",
         ascending=False,
     )
-    top_states.to_csv('output/og_kush_top_500_price.csv')
+    top_states.to_csv('output/og_kush_top_500_price_new.csv')
 
     # top_states = run(
     #     base_cost = Cost.SOUR_DIESEL,
@@ -476,15 +476,15 @@ if __name__ == "__main__":
     # )
     # top_states.to_csv('output/meth_top_500_profit.csv')
 
-    # top_states = run(
-    #     base_cost = Cost.OG_KUSH,
-    #     base_price = Price.WEED,
-    #     initial_state = effects_to_state([Effect.CALMING]),
-    #     limit = 500,
-    #     sort_by="profit_per_item",
-    #     ascending=False,
-    # )
-    # top_states.to_csv('output/og_kush_top_500_profit_per_item.csv')
+    top_states = run(
+        base_cost = Cost.OG_KUSH,
+        base_price = Price.WEED,
+        initial_state = effects_to_state([Effect.CALMING]),
+        limit = 500,
+        sort_by="profit_per_item",
+        ascending=False,
+    )
+    top_states.to_csv('output/og_kush_top_500_profit_per_item_new.csv')
 
     # top_states = run(
     #     base_cost = Cost.SOUR_DIESEL,

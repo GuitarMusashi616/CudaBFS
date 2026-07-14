@@ -1,0 +1,50 @@
+flowchart TD
+    None -->|OG_KUSH| Calming
+    None -->|SOUR_DIESEL| Refreshing
+    None -->|GREEN_CRACK| Energizing
+    None -->|GRANDDADDY_PURPLE| Sedating
+    None -->|Cuke| Energizing
+    None -->|Banana| Gingeritis
+    None -->|Paracetamol| Sneaky
+    None -->|Donut| Calorie-dense
+    None -->|Viagra| Tropic-thunder
+    None -->|Mouthwash| Balding
+    None -->|Flu-meds| Sedating
+    None -->|Gasoline| Toxic
+    None -->|Energy drink| Athletic
+    None -->|Motor oil| Slippery
+    None -->|Megabean| Foggy
+    None -->|Chili| Spicy
+    None -->|Battery| Bright-eyed
+    None -->|Iodine| Jennerising
+    None -->|Addy| Thought-provoking
+    None -->|Horse semen| Long-faced
+    Sneaky -->|Cuke| Paranoia
+    Energizing -->|Paracetamol| Paranoia
+    Jennerising -->|Megabean| Paranoia
+    Foggy -->|Iodine| Paranoia
+    Toxic -->|Cuke| Euphoric
+    Energizing -->|Gasoline| Euphoric
+    Spicy -->|Energy drink| Euphoric
+    Slippery -->|Cuke| Munchies
+    Athletic -->|Flu-meds| Munchies
+    Sedating -->|Energy drink| Munchies
+    Energizing -->|Motor oil| Munchies
+    Foggy -->|Cuke| Cyclopean
+    Energizing -->|Megabean| Cyclopean
+    Toxic -->|Banana| Smelly
+    Gingeritis -->|Gasoline| Smelly
+    Foggy -->|Energy drink| Laxative
+    Calming -->|Mouthwash| Anti-gravity
+    Calming -->|Megabean| Glowing
+    Calorie-dense -->|Donut| Explosive
+    Long-faced -->|Addy| Electrifying
+    Thought-provoking -->|Horse semen| Electrifying
+    Euphoric -->|Battery| Zombifying
+    Euphoric -->|Iodine| Seizure-inducing
+    Munchies -->|Motor oil| Schizophrenic
+    Glowing -->|Energy drink| Disorienting
+    Electrifying -->|Gasoline| Disorienting
+    Seizure-inducing -->|Megabean| Focused
+    Disorienting -->|Banana| Focused
+    Focused -->|Energy drink| Shrinking

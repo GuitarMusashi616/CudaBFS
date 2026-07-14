@@ -1,0 +1,126 @@
+flowchart TD
+    None -->|OG_KUSH| Calming
+    None -->|SOUR_DIESEL| Refreshing
+    None -->|GREEN_CRACK| Energizing
+    None -->|GRANDDADDY_PURPLE| Sedating
+    None -->|Cuke| Energizing
+    Sneaky -->|Cuke| Paranoia
+    Toxic -->|Cuke| Euphoric
+    Slippery -->|Cuke| Munchies
+    Foggy -->|Cuke| Cyclopean
+    Euphoric -->|Cuke| Laxative
+    Munchies -->|Cuke| Athletic
+    None -->|Banana| Gingeritis
+    Energizing -->|Banana| Thought-provoking
+    Toxic -->|Banana| Smelly
+    Long-faced -->|Banana| Refreshing
+    Calming -->|Banana| Sneaky
+    Paranoia -->|Banana| Jennerising
+    Cyclopean -->|Banana| Energizing
+    Smelly -->|Banana| Anti-gravity
+    Disorienting -->|Banana| Focused
+    Focused -->|Banana| Seizure-inducing
+    None -->|Paracetamol| Sneaky
+    Energizing -->|Paracetamol| Paranoia
+    Toxic -->|Paracetamol| Tropic-thunder
+    Foggy -->|Paracetamol| Calming
+    Spicy -->|Paracetamol| Bright-eyed
+    Calming -->|Paracetamol| Slippery
+    Glowing -->|Paracetamol| Toxic
+    Paranoia -->|Paracetamol| Balding
+    Munchies -->|Paracetamol| Anti-gravity
+    Electrifying -->|Paracetamol| Athletic
+    None -->|Donut| Calorie-dense
+    Calorie-dense -->|Donut| Explosive
+    Balding -->|Donut| Sneaky
+    Jennerising -->|Donut| Gingeritis
+    Anti-gravity -->|Donut| Slippery
+    Munchies -->|Donut| Calming
+    Focused -->|Donut| Euphoric
+    Shrinking -->|Donut| Energizing
+    None -->|Viagra| Tropic-thunder
+    Athletic -->|Viagra| Sneaky
+    Euphoric -->|Viagra| Bright-eyed
+    Laxative -->|Viagra| Calming
+    Disorienting -->|Viagra| Toxic
+    None -->|Mouthwash| Balding
+    Calorie-dense -->|Mouthwash| Sneaky
+    Calming -->|Mouthwash| Anti-gravity
+    Explosive -->|Mouthwash| Sedating
+    Focused -->|Mouthwash| Jennerising
+    None -->|Flu-meds| Sedating
+    Athletic -->|Flu-meds| Munchies
+    Thought-provoking -->|Flu-meds| Gingeritis
+    Calming -->|Flu-meds| Bright-eyed
+    Euphoric -->|Flu-meds| Toxic
+    Munchies -->|Flu-meds| Slippery
+    Laxative -->|Flu-meds| Euphoric
+    Electrifying -->|Flu-meds| Refreshing
+    Shrinking -->|Flu-meds| Paranoia
+    None -->|Gasoline| Toxic
+    Energizing -->|Gasoline| Euphoric
+    Gingeritis -->|Gasoline| Smelly
+    Sneaky -->|Gasoline| Tropic-thunder
+    Jennerising -->|Gasoline| Sneaky
+    Paranoia -->|Gasoline| Calming
+    Laxative -->|Gasoline| Foggy
+    Electrifying -->|Gasoline| Disorienting
+    Disorienting -->|Gasoline| Glowing
+    Shrinking -->|Gasoline| Focused
+    None -->|Energy drink| Athletic
+    Tropic-thunder -->|Energy drink| Sneaky
+    Sedating -->|Energy drink| Munchies
+    Foggy -->|Energy drink| Laxative
+    Spicy -->|Energy drink| Euphoric
+    Glowing -->|Energy drink| Disorienting
+    Schizophrenic -->|Energy drink| Balding
+    Focused -->|Energy drink| Shrinking
+    None -->|Motor oil| Slippery
+    Energizing -->|Motor oil| Munchies
+    Foggy -->|Motor oil| Toxic
+    Paranoia -->|Motor oil| Anti-gravity
+    Euphoric -->|Motor oil| Sedating
+    Munchies -->|Motor oil| Schizophrenic
+    None -->|Megabean| Foggy
+    Energizing -->|Megabean| Cyclopean
+    Sneaky -->|Megabean| Calming
+    Slippery -->|Megabean| Toxic
+    Jennerising -->|Megabean| Paranoia
+    Thought-provoking -->|Megabean| Energizing
+    Calming -->|Megabean| Glowing
+    Seizure-inducing -->|Megabean| Focused
+    Focused -->|Megabean| Disorienting
+    Shrinking -->|Megabean| Electrifying
+    Athletic -->|Megabean| Laxative
+    None -->|Chili| Spicy
+    Sneaky -->|Chili| Bright-eyed
+    Anti-gravity -->|Chili| Tropic-thunder
+    Munchies -->|Chili| Toxic
+    Laxative -->|Chili| Long-faced
+    Shrinking -->|Chili| Refreshing
+    Athletic -->|Chili| Euphoric
+    None -->|Battery| Bright-eyed
+    Euphoric -->|Battery| Zombifying
+    Munchies -->|Battery| Tropic-thunder
+    Cyclopean -->|Battery| Glowing
+    Laxative -->|Battery| Calorie-dense
+    Electrifying -->|Battery| Euphoric
+    Shrinking -->|Battery| Munchies
+    None -->|Iodine| Jennerising
+    Calorie-dense -->|Iodine| Gingeritis
+    Toxic -->|Iodine| Sneaky
+    Foggy -->|Iodine| Paranoia
+    Calming -->|Iodine| Balding
+    Refreshing -->|Iodine| Thought-provoking
+    Euphoric -->|Iodine| Seizure-inducing
+    None -->|Addy| Thought-provoking
+    Sedating -->|Addy| Gingeritis
+    Foggy -->|Addy| Energizing
+    Long-faced -->|Addy| Electrifying
+    Glowing -->|Addy| Refreshing
+    Explosive -->|Addy| Euphoric
+    None -->|Horse semen| Long-faced
+    Gingeritis -->|Horse semen| Refreshing
+    Thought-provoking -->|Horse semen| Electrifying
+    Anti-gravity -->|Horse semen| Calming
+    Seizure-inducing -->|Horse semen| Energizing

@@ -1,0 +1,52 @@
+flowchart TD
+    None -->|OG_KUSH| Calming
+    None -->|SOUR_DIESEL| Refreshing
+    None -->|GREEN_CRACK| Energizing
+    None -->|GRANDDADDY_PURPLE| Sedating
+    None -->|Cuke| Energizing
+    Sneaky -->|Cuke| Paranoia
+    Toxic -->|Cuke| Euphoric
+    Slippery -->|Cuke| Munchies
+    Foggy -->|Cuke| Cyclopean
+    None -->|Banana| Gingeritis
+    Toxic -->|Banana| Smelly
+    Disorienting -->|Banana| Focused
+    None -->|Paracetamol| Sneaky
+    Energizing -->|Paracetamol| Paranoia
+    None -->|Donut| Calorie-dense
+    Calorie-dense -->|Donut| Explosive
+    None -->|Viagra| Tropic-thunder
+    None -->|Mouthwash| Balding
+    Calming -->|Mouthwash| Anti-gravity
+    None -->|Flu-meds| Sedating
+    Athletic -->|Flu-meds| Munchies
+    None -->|Gasoline| Toxic
+    Energizing -->|Gasoline| Euphoric
+    Gingeritis -->|Gasoline| Smelly
+    Electrifying -->|Gasoline| Disorienting
+    None -->|Energy drink| Athletic
+    Sedating -->|Energy drink| Munchies
+    Foggy -->|Energy drink| Laxative
+    Spicy -->|Energy drink| Euphoric
+    Glowing -->|Energy drink| Disorienting
+    Focused -->|Energy drink| Shrinking
+    None -->|Motor oil| Slippery
+    Energizing -->|Motor oil| Munchies
+    Munchies -->|Motor oil| Schizophrenic
+    None -->|Megabean| Foggy
+    Energizing -->|Megabean| Cyclopean
+    Jennerising -->|Megabean| Paranoia
+    Calming -->|Megabean| Glowing
+    Seizure-inducing -->|Megabean| Focused
+    Athletic -->|Megabean| Laxative
+    None -->|Chili| Spicy
+    Athletic -->|Chili| Euphoric
+    None -->|Battery| Bright-eyed
+    Euphoric -->|Battery| Zombifying
+    None -->|Iodine| Jennerising
+    Foggy -->|Iodine| Paranoia
+    Euphoric -->|Iodine| Seizure-inducing
+    None -->|Addy| Thought-provoking
+    Long-faced -->|Addy| Electrifying
+    None -->|Horse semen| Long-faced
+    Thought-provoking -->|Horse semen| Electrifying

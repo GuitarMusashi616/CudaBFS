@@ -8,7 +8,8 @@
                 "Paranoia"
             ],
             "Toxic": [
-                "Euphoric"
+                "Euphoric",
+                "Laxative"
             ],
             "Slippery": [
                 "Munchies"
@@ -89,6 +90,9 @@
             ],
             "Electrifying": [
                 "Athletic"
+            ],
+            "Focused": [
+                "Gingeritis"
             ]
         }
     },
@@ -304,9 +308,6 @@
             ],
             "Shrinking": [
                 "Electrifying"
-            ],
-            "Athletic": [
-                "Laxative"
             ]
         }
     },
@@ -329,9 +330,6 @@
             ],
             "Shrinking": [
                 "Refreshing"
-            ],
-            "Athletic": [
-                "Euphoric"
             ]
         }
     },
