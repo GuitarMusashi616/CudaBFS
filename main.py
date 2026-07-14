@@ -369,8 +369,8 @@ class Cost:
     GREEN_CRACK = 40
     GRANDDADDY_PURPLE = 45
     # 60, 80, 110 for pseudo low med high 10x
-    # pseudo, phosphorus, acid
-    METH = 8 + 40 + 40
+    # pseudo, phosphorus, acid, 10 per batch
+    METH = 8 + 4 + 4
 
 
 if __name__ == "__main__":
